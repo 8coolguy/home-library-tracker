@@ -1,0 +1,12 @@
+**/__pycache__
+**/*.pyc
+**/*.pyo
+*.egg-info
+.git
+.gitignore
+uploads/
+*.db
+*.jpg
+*.jpeg
+*.png
+.claude/

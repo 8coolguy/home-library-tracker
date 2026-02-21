@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - library_db:/data
+      - library_uploads:/uploads
+    environment:
+      HOME_LIBRARY_DB: sqlite:////data/home_library.db
+      HOME_LIBRARY_UPLOADS: /uploads
+      HOME_LIBRARY_OCR_CONFIDENCE: "0.5"
+    restart: unless-stopped
+
+volumes:
+  library_db:
+  library_uploads:
