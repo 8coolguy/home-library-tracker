@@ -10,6 +10,7 @@ from datetime import datetime
 
 from .config import UPLOADS_DIR, OCR_MIN_CONFIDENCE
 from .database import SessionLocal
+from .lookup import lookup_book
 from .models import Scan, Book
 
 logger = logging.getLogger(__name__)
@@ -37,10 +38,30 @@ def _process_scan(scan_id: int) -> None:
         results = scan_books(image_path, min_confidence=OCR_MIN_CONFIDENCE)
 
         for entry in results:
+            ocr_title = entry.get("title")
+            ocr_author = entry.get("author")
+
+            enriched = lookup_book(ocr_title, ocr_author)
+
+            if enriched:
+                title = enriched["title"] or ocr_title
+                author = enriched["author"] or ocr_author
+                cover_url = enriched["cover_url"]
+                isbn = enriched["isbn"]
+            else:
+                title = ocr_title
+                author = ocr_author
+                cover_url = None
+                isbn = None
+
             db.add(Book(
                 scan_id=scan.id,
-                title=entry.get("title"),
-                author=entry.get("author"),
+                title=title,
+                author=author,
+                cover_url=cover_url,
+                isbn=isbn,
+                ocr_title=ocr_title,
+                ocr_author=ocr_author,
             ))
 
         scan.status = "completed"

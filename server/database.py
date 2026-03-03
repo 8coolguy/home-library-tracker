@@ -20,6 +20,28 @@ def init_db() -> None:
     from . import models as _  # noqa: F401 — ensure models are registered
 
     Base.metadata.create_all(bind=engine)
+    _migrate_books_table()
+
+
+def _migrate_books_table() -> None:
+    """Add new columns to an existing books table (idempotent)."""
+    from sqlalchemy import text
+    from sqlalchemy.exc import OperationalError
+
+    new_columns = [
+        "cover_url TEXT",
+        "isbn TEXT",
+        "ocr_title TEXT",
+        "ocr_author TEXT",
+    ]
+    with engine.connect() as conn:
+        for col_def in new_columns:
+            try:
+                conn.execute(text(f"ALTER TABLE books ADD COLUMN {col_def}"))
+                conn.commit()
+            except OperationalError:
+                # Column already exists — safe to ignore
+                pass
 
 
 def get_db():

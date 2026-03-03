@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - library_db:/data
       - library_uploads:/uploads
@@ -10,6 +10,7 @@ services:
       HOME_LIBRARY_DB: sqlite:////data/home_library.db
       HOME_LIBRARY_UPLOADS: /uploads
       HOME_LIBRARY_OCR_CONFIDENCE: "0.5"
+      HOME_LIBRARY_GOOGLE_BOOKS_KEY: ${HOME_LIBRARY_GOOGLE_BOOKS_KEY:-}
     restart: unless-stopped
 
 volumes:

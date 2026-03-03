@@ -44,6 +44,10 @@ class BookshelfNearest(BookshelfOut):
 class BookOut(BaseModel):
     title: Optional[str]
     author: Optional[str]
+    cover_url: Optional[str] = None
+    isbn: Optional[str] = None
+    ocr_title: Optional[str] = None
+    ocr_author: Optional[str] = None
 
     class Config:
         from_attributes = True

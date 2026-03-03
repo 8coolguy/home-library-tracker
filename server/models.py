@@ -53,5 +53,9 @@ class Book(Base):
     scan_id: Mapped[int] = mapped_column(ForeignKey("scans.id"), nullable=False)
     title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     author: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    cover_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    isbn: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    ocr_title: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    ocr_author: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     scan: Mapped[Scan] = relationship(back_populates="books")

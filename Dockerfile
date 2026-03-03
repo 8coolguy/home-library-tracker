@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libxrender1 \
         libxext6 \
         libgl1 \
+        libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -19,7 +20,8 @@ COPY server/ ./server/
 RUN pip install --no-cache-dir ".[server]"
 
 # Pre-download PaddleOCR models so the container doesn't need internet at runtime
-RUN python -c "from paddleocr import PaddleOCR; PaddleOCR(use_angle_cls=True, lang='en', show_log=False)"
+RUN python -c "from paddleocr import PaddleOCR; PaddleOCR(use_angle_cls=True, lang='en', show_log=False)" || \
+    echo "WARNING: PaddleOCR model pre-download failed; models will download on first use"
 
 # Runtime directories (overridden by volumes in docker-compose)
 RUN mkdir -p /data /uploads

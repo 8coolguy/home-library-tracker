@@ -11,6 +11,12 @@ from .database import init_db
 from .routers import bookshelves, scans
 from .worker import recover_pending_scans, start_worker, stop_worker
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 logging.basicConfig(level=logging.INFO)
 
 
