@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .database import init_db
-from .routers import bookshelves, scans
+from .routers import books, bookshelves, scans
 from .worker import recover_pending_scans, start_worker, stop_worker
 
 try:
@@ -37,6 +37,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(books.router)
 app.include_router(bookshelves.router)
 app.include_router(scans.router)
 

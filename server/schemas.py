@@ -53,6 +53,19 @@ class BookOut(BaseModel):
         from_attributes = True
 
 
+class BookSearchResult(BaseModel):
+    id: int
+    title: Optional[str]
+    author: Optional[str]
+    cover_url: Optional[str] = None
+    isbn: Optional[str] = None
+    bookshelf_id: Optional[int]
+    bookshelf_name: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
 class BookshelfBooksOut(BaseModel):
     bookshelf_id: int
     bookshelf_name: str

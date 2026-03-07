@@ -72,11 +72,14 @@ def group_blocks(blocks: List[TextBlock]) -> List[List[TextBlock]]:
 
     orientation = _dominant_orientation(blocks)
     if orientation == "vertical":
-        # For vertical spines, use width (the narrow spine dimension)
+        # Vertical spines: width is the narrow cross-section (font height), use it
+        # so the gap threshold stays tight and adjacent spines stay separated.
         sizes = [b.width for b in blocks]
     else:
-        # For horizontal text, use width (the span of the text line)
-        sizes = [b.width for b in blocks]
+        # Horizontal text: width is the full text span (very long), which would
+        # make the gap threshold too wide and merge blocks from adjacent books.
+        # Use height (the font height — the narrow dimension) instead.
+        sizes = [b.height for b in blocks]
 
     median_size = float(np.median(sizes)) if sizes else 50.0
     gap_threshold = median_size * 0.8

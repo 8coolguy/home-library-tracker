@@ -98,7 +98,7 @@ def get_scan(scan_id: int, db: Session = Depends(get_db)):
 
     books = None
     if scan.status == "completed":
-        books = [BookOut(title=b.title, author=b.author) for b in scan.books]
+        books = [BookOut.model_validate(b) for b in scan.books]
 
     return ScanOut(
         id=scan.id,
