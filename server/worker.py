@@ -54,6 +54,10 @@ def _process_scan(scan_id: int) -> None:
                 cover_url = None
                 isbn = None
 
+            if not title and not author:
+                logger.debug("Skipping null book entry (no title or author)")
+                continue
+
             db.add(Book(
                 scan_id=scan.id,
                 title=title,
