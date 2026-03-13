@@ -53,6 +53,27 @@ class BookOut(BaseModel):
         from_attributes = True
 
 
+class BookAdminOut(BaseModel):
+    id: int
+    scan_id: int
+    title: Optional[str]
+    author: Optional[str]
+    cover_url: Optional[str] = None
+    isbn: Optional[str] = None
+    ocr_title: Optional[str] = None
+    ocr_author: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BookUpdate(BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+    cover_url: Optional[str] = None
+    isbn: Optional[str] = None
+
+
 class BookSearchResult(BaseModel):
     id: int
     title: Optional[str]
@@ -83,10 +104,29 @@ class ScanOut(BaseModel):
     error_message: Optional[str]
     created_at: datetime
     completed_at: Optional[datetime]
-    books: Optional[List[BookOut]] = None
+    image_filename: Optional[str] = None
+    books: Optional[List[BookAdminOut]] = None
 
     class Config:
         from_attributes = True
+
+
+class ScanListItem(BaseModel):
+    id: int
+    bookshelf_id: Optional[int]
+    bookshelf_name: Optional[str]
+    image_filename: str
+    status: str
+    created_at: datetime
+    completed_at: Optional[datetime]
+    book_count: int
+
+
+class ScanDeletePreview(BaseModel):
+    scan_id: int
+    total_books: int
+    unique_books: int
+    shared_books: int
 
 
 class ScanCreated(BaseModel):

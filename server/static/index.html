@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Library</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --border: #e0dbd4;
+    --accent: #5c4033;
+    --accent-light: #8b6355;
+    --text: #2c2520;
+    --muted: #7a6e68;
+    --danger: #c0392b;
+    --success: #27ae60;
+    --warning: #e67e22;
+    --radius: 8px;
+  }
+  body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* NAV */
+  nav { background: var(--accent); color: #fff; padding: 0 24px; display: flex; align-items: center; gap: 16px; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+  nav .brand { font-size: 1.2rem; font-weight: bold; letter-spacing: .5px; white-space: nowrap; }
+  nav .brand a { color: inherit; text-decoration: none; }
+  nav .search-bar { flex: 1; max-width: 420px; display: flex; gap: 6px; }
+  nav .search-bar input { flex: 1; padding: 6px 10px; border-radius: var(--radius); border: none; font-size: .9rem; }
+  nav .search-bar button { padding: 6px 12px; background: var(--accent-light); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; }
+  nav .nav-links { display: flex; gap: 4px; margin-left: auto; }
+  nav .nav-links a { color: rgba(255,255,255,.85); text-decoration: none; padding: 6px 12px; border-radius: var(--radius); font-size: .9rem; }
+  nav .nav-links a:hover, nav .nav-links a.active { background: rgba(255,255,255,.15); color: #fff; }
+
+  /* LAYOUT */
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .card + .card { margin-top: 12px; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+  /* BOOKSHELF CARD */
+  .shelf-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: box-shadow .15s, transform .15s; }
+  .shelf-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-2px); }
+  .shelf-card h3 { font-size: 1.05rem; color: var(--accent); }
+  .shelf-card .meta { font-size: .8rem; color: var(--muted); margin-top: 6px; }
+
+  /* BOOK ITEM */
+  .book-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .book-item:last-child { border-bottom: none; }
+  .book-cover { width: 44px; height: 60px; object-fit: cover; border-radius: 3px; background: var(--border); flex-shrink: 0; }
+  .book-cover-placeholder { width: 44px; height: 60px; background: linear-gradient(135deg, var(--accent-light), var(--accent)); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .65rem; color: rgba(255,255,255,.7); text-align: center; }
+  .book-info { flex: 1; min-width: 0; }
+  .book-title { font-size: .95rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .book-author { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+  .book-isbn { font-size: .75rem; color: var(--muted); margin-top: 2px; font-family: monospace; }
+
+  /* SCAN STATUS */
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: .75rem; font-weight: bold; }
+  .status-pending, .status-processing { background: #fff3cd; color: #856404; }
+  .status-completed { background: #d4edda; color: #155724; }
+  .status-failed { background: #f8d7da; color: #721c24; }
+
+  /* SCAN CARD */
+  .scan-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); display: flex; gap: 14px; padding: 14px; }
+  .scan-card + .scan-card { margin-top: 10px; }
+  .scan-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 4px; background: var(--border); flex-shrink: 0; cursor: pointer; }
+  .scan-info { flex: 1; min-width: 0; }
+  .scan-info h4 { font-size: .9rem; }
+  .scan-info .meta { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+  .scan-info .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* BUTTONS */
+  .btn { display: inline-block; padding: 7px 14px; border-radius: var(--radius); font-size: .85rem; cursor: pointer; border: none; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-secondary:hover { background: var(--accent); color: #fff; }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: .78rem; }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: .9rem; background: var(--card); color: var(--text); }
+  .form-group input:focus, .form-group select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .page-header h2 { font-size: 1.4rem; color: var(--accent); flex: 1; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; gap: 8px; margin: 20px 0 12px; }
+  .section-header h3 { font-size: 1.05rem; color: var(--muted); }
+  .section-header .divider { flex: 1; height: 1px; background: var(--border); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: var(--card); border-radius: var(--radius); padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 1.1rem; color: var(--accent); margin-bottom: 16px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+  /* UPLOAD ZONE */
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; color: var(--muted); transition: border-color .15s, background .15s; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(92,64,51,.04); }
+  .upload-zone input[type=file] { display: none; }
+  .upload-zone .icon { font-size: 2rem; margin-bottom: 8px; }
+  .upload-zone .hint { font-size: .8rem; margin-top: 6px; }
+  .upload-preview { max-width: 200px; max-height: 160px; border-radius: 4px; margin: 10px auto 0; display: block; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 16px; }
+  .tab { padding: 8px 16px; cursor: pointer; font-size: .9rem; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: bold; }
+
+  /* INLINE EDIT */
+  .editable { cursor: pointer; border-bottom: 1px dotted var(--muted); }
+  .edit-field { width: 100%; padding: 4px 6px; border: 1px solid var(--accent); border-radius: 4px; font-size: .9rem; }
+
+  /* MISC */
+  .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+  .empty .icon { font-size: 3rem; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; padding: 10px 18px; border-radius: var(--radius); font-size: .85rem; z-index: 999; animation: fadein .2s; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .hidden { display: none !important; }
+  a { color: var(--accent); }
+  .scan-image-full { max-width: 100%; border-radius: var(--radius); margin-bottom: 16px; }
+  .historical-tag { font-size: .7rem; background: #fff3cd; color: #856404; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand"><a href="#/">Home Library</a></div>
+  <div class="search-bar">
+    <input id="nav-search" type="text" placeholder="Search books..." />
+    <button onclick="doNavSearch()">Search</button>
+  </div>
+  <div class="nav-links">
+    <a href="#/bookshelves" id="nav-shelves">Bookshelves</a>
+    <a href="#/scans" id="nav-scans">Scans</a>
+  </div>
+</nav>
+
+<main id="app">
+  <div class="empty"><div class="spinner"></div></div>
+</main>
+
+<!-- MODALS -->
+<div id="modal-root"></div>
+
+<script>
+const API = '/api';  // same origin
+
+// ── Router ────────────────────────────────────────────────────────────────────
+const routes = [];
+function route(pattern, handler) { routes.push({ pattern, handler }); }
+
+function navigate(path) {
+  window.location.hash = '#' + path;
+}
+
+function dispatch() {
+  const hash = window.location.hash.slice(1) || '/';
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  if (hash.startsWith('/bookshelves')) document.getElementById('nav-shelves').classList.add('active');
+  else if (hash.startsWith('/scans')) document.getElementById('nav-scans').classList.add('active');
+
+  for (const { pattern, handler } of routes) {
+    const m = hash.match(pattern);
+    if (m) { handler(...m.slice(1)); return; }
+  }
+  render('<div class="empty"><div class="icon">404</div><p>Page not found</p></div>');
+}
+
+window.addEventListener('hashchange', dispatch);
+
+// ── API helpers ───────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: {} };
+  if (body && !(body instanceof FormData)) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  } else if (body) {
+    opts.body = body;
+  }
+  const r = await fetch(API + path, opts);
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({ detail: r.statusText }));
+    throw new Error(err.detail || r.statusText);
+  }
+  if (r.status === 204) return null;
+  return r.json();
+}
+
+const get  = (p) => api('GET', p);
+const post = (p, b) => api('POST', p, b);
+const put  = (p, b) => api('PUT', p, b);
+const patch = (p, b) => api('PATCH', p, b);
+const del  = (p) => api('DELETE', p);
+
+// ── UI Helpers ────────────────────────────────────────────────────────────────
+function render(html) {
+  document.getElementById('app').innerHTML = html;
+}
+
+function toast(msg, duration = 3000) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), duration);
+}
+
+function openModal(html) {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `<div class="modal-overlay" id="overlay" onclick="closeModalIf(event)">${html}</div>`;
+}
+
+function closeModal() {
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+function closeModalIf(e) {
+  if (e.target.id === 'overlay') closeModal();
+}
+
+function statusBadge(status) {
+  return `<span class="status-badge status-${status}">${status}</span>`;
+}
+
+function bookCover(book) {
+  if (book.cover_url) {
+    return `<img class="book-cover" src="${esc(book.cover_url)}" alt="cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="book-cover-placeholder" style="display:none">No cover</div>`;
+  }
+  return `<div class="book-cover-placeholder">No cover</div>`;
+}
+
+function bookItem(book, extra = '') {
+  return `<div class="book-item">
+    ${bookCover(book)}
+    <div class="book-info">
+      <div class="book-title">${esc(book.title || '(Unknown title)')}</div>
+      <div class="book-author">${esc(book.author || '(Unknown author)')}</div>
+      ${book.isbn ? `<div class="book-isbn">ISBN: ${esc(book.isbn)}</div>` : ''}
+      ${extra}
+    </div>
+  </div>`;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return new Date(s).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+function doNavSearch() {
+  const q = document.getElementById('nav-search').value.trim();
+  if (q) navigate('/search/' + encodeURIComponent(q));
+}
+
+document.getElementById('nav-search').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doNavSearch();
+});
+
+route(/^\/search\/(.+)$/, async (query) => {
+  const decoded = decodeURIComponent(query);
+  document.getElementById('nav-search').value = decoded;
+  render(`<div class="page-header"><h2>Search: "${esc(decoded)}"</h2></div><div id="results"><div class="empty"><div class="spinner"></div></div></div>`);
+  try {
+    const books = await get(`/books/search?q=${encodeURIComponent(decoded)}`);
+    const el = document.getElementById('results');
+    if (!books.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">📚</div><p>No books found.</p></div>';
+      return;
+    }
+    el.innerHTML = books.map(b => `
+      <div class="card">
+        ${bookItem(b, b.bookshelf_name ? `<div class="book-isbn" style="margin-top:4px">📚 <a href="#/bookshelves/${b.bookshelf_id}">${esc(b.bookshelf_name)}</a></div>` : '')}
+      </div>`).join('');
+  } catch(e) { document.getElementById('results').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+});
+
+route(/^\/$/, async () => {
+  render(`
+    <div style="text-align:center;padding:60px 16px 40px">
+      <div style="font-size:3rem;margin-bottom:12px">📚</div>
+      <h1 style="color:var(--accent);font-size:2rem;margin-bottom:8px">Home Library</h1>
+      <p style="color:var(--muted);margin-bottom:32px">Track the books on your shelves with photo OCR</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="#/bookshelves" class="btn btn-primary">View Bookshelves</a>
+        <button class="btn btn-secondary" onclick="showNewScanModal()">New Scan</button>
+      </div>
+    </div>
+    <div id="home-stats"></div>
+  `);
+  try {
+    const [shelves, scans] = await Promise.all([get('/bookshelves'), get('/scans')]);
+    document.getElementById('home-stats').innerHTML = `
+      <div class="card-grid" style="max-width:600px;margin:0 auto">
+        <div class="card" style="text-align:center">
+          <div style="font-size:2rem;color:var(--accent)">${shelves.length}</div>
+          <div style="color:var(--muted)">Bookshelves</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:2rem;color:var(--accent)">${scans.length}</div>
+          <div style="color:var(--muted)">Scans</div>
+        </div>
+      </div>`;
+  } catch {}
+});
+
+// ── Bookshelves ───────────────────────────────────────────────────────────────
+route(/^\/bookshelves$/, async () => {
+  render('<div class="page-header"><h2>Bookshelves</h2><button class="btn btn-primary" onclick="showCreateShelfModal()">+ New Shelf</button></div><div id="shelves-grid"><div class="empty"><div class="spinner"></div></div></div>');
+  await loadShelvesGrid();
+});
+
+async function loadShelvesGrid() {
+  const el = document.getElementById('shelves-grid');
+  try {
+    const shelves = await get('/bookshelves');
+    if (!shelves.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">🗄️</div><p>No bookshelves yet. Create one!</p></div>';
+      return;
+    }
+    el.innerHTML = `<div class="card-grid">${shelves.map(s => `
+      <div class="shelf-card" onclick="navigate('/bookshelves/${s.id}')">
+        <h3>${esc(s.name)}</h3>
+        <div class="meta">Created ${fmtDate(s.created_at)}</div>
+        ${s.latitude ? `<div class="meta">📍 ${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}</div>` : ''}
+      </div>`).join('')}</div>`;
+  } catch(e) { el.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+function showCreateShelfModal() {
+  openModal(`<div class="modal">
+    <h3>New Bookshelf</h3>
+    <div class="form-group"><label>Name</label><input id="shelf-name" placeholder="Living Room" /></div>
+    <div class="form-row">
+      <div class="form-group"><label>Latitude (optional)</label><input id="shelf-lat" type="number" step="any" /></div>
+      <div class="form-group"><label>Longitude (optional)</label><input id="shelf-lon" type="number" step="any" /></div>
+    </div>
+    <div style="margin-bottom:10px"><button class="btn btn-secondary btn-sm" onclick="useMyLocation()">📍 Use My Location</button></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createShelf()">Create</button>
+    </div>
+  </div>`);
+}
+
+function useMyLocation() {
+  if (!navigator.geolocation) { toast('Geolocation not supported'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('shelf-lat').value = pos.coords.latitude;
+    document.getElementById('shelf-lon').value = pos.coords.longitude;
+  }, () => toast('Could not get location'));
+}
+
+async function createShelf() {
+  const name = document.getElementById('shelf-name').value.trim();
+  if (!name) { toast('Name is required'); return; }
+  const lat = document.getElementById('shelf-lat').value;
+  const lon = document.getElementById('shelf-lon').value;
+  try {
+    const s = await post('/bookshelves', {
+      name,
+      latitude: lat ? parseFloat(lat) : null,
+      longitude: lon ? parseFloat(lon) : null,
+    });
+    closeModal();
+    navigate('/bookshelves/' + s.id);
+  } catch(e) { toast(e.message); }
+}
+
+// ── Bookshelf Detail ──────────────────────────────────────────────────────────
+route(/^\/bookshelves\/(\d+)$/, async (id) => {
+  render('<div class="empty"><div class="spinner"></div></div>');
+  try {
+    const shelf = await get('/bookshelves/' + id);
+    renderShelfPage(shelf);
+  } catch(e) { render(`<div class="empty">${esc(e.message)}</div>`); }
+});
+
+async function renderShelfPage(shelf) {
+  render(`
+    <div class="page-header">
+      <a href="#/bookshelves" style="color:var(--muted);text-decoration:none;font-size:.9rem">← Bookshelves</a>
+      <h2 id="shelf-title">${esc(shelf.name)}</h2>
+      <button class="btn btn-secondary btn-sm" onclick="showEditShelfModal(${shelf.id}, '${esc(shelf.name)}', ${shelf.latitude ?? 'null'}, ${shelf.longitude ?? 'null'})">Edit</button>
+      <button class="btn btn-primary btn-sm" onclick="showNewScanModal(${shelf.id})">+ New Scan</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteShelf(${shelf.id})">Delete</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="tab-books" onclick="switchTab('books', ${shelf.id})">Books</div>
+      <div class="tab" id="tab-scans" onclick="switchTab('scans', ${shelf.id})">Scan History</div>
+    </div>
+    <div id="tab-content"><div class="empty"><div class="spinner"></div></div></div>
+  `);
+  loadShelfBooks(shelf.id);
+}
+
+async function switchTab(tab, shelfId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'books') loadShelfBooks(shelfId);
+  else loadShelfScans(shelfId);
+}
+
+async function loadShelfBooks(shelfId) {
+  const el = document.getElementById('tab-content');
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  try {
+    const data = await get('/bookshelves/' + shelfId + '/books');
+    const all = [
+      ...data.current.map(b => ({ ...b, _current: true })),
+      ...data.historical.map(b => ({ ...b, _current: false })),
+    ];
+    if (!all.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">📖</div><p>No books found. Upload a scan to get started.</p></div>';
+      return;
+    }
+    el.innerHTML = `
+      <div style="margin-bottom:10px;color:var(--muted);font-size:.85rem">${data.current.length} current · ${data.historical.length} historical</div>
+      <div class="card">${all.map(b => `
+        ${bookItem(b, !b._current ? '<span class="historical-tag">historical</span>' : '')}
+      `).join('')}</div>`;
+  } catch(e) { el.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+async function loadShelfScans(shelfId) {
+  const el = document.getElementById('tab-content');
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  try {
+    const scans = await get('/scans?bookshelf_id=' + shelfId);
+    if (!scans.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">📷</div><p>No scans yet.</p></div>';
+      return;
+    }
+    el.innerHTML = scans.map(s => scanCard(s)).join('');
+  } catch(e) { el.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+function showEditShelfModal(id, name, lat, lon) {
+  openModal(`<div class="modal">
+    <h3>Edit Bookshelf</h3>
+    <div class="form-group"><label>Name</label><input id="edit-shelf-name" value="${esc(name)}" /></div>
+    <div class="form-row">
+      <div class="form-group"><label>Latitude</label><input id="edit-shelf-lat" type="number" step="any" value="${lat ?? ''}" /></div>
+      <div class="form-group"><label>Longitude</label><input id="edit-shelf-lon" type="number" step="any" value="${lon ?? ''}" /></div>
+    </div>
+    <div style="margin-bottom:10px"><button class="btn btn-secondary btn-sm" onclick="useMyLocationEdit()">📍 Use My Location</button></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShelf(${id})">Save</button>
+    </div>
+  </div>`);
+}
+
+function useMyLocationEdit() {
+  if (!navigator.geolocation) { toast('Geolocation not supported'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('edit-shelf-lat').value = pos.coords.latitude;
+    document.getElementById('edit-shelf-lon').value = pos.coords.longitude;
+  }, () => toast('Could not get location'));
+}
+
+async function saveShelf(id) {
+  const name = document.getElementById('edit-shelf-name').value.trim();
+  if (!name) { toast('Name required'); return; }
+  const lat = document.getElementById('edit-shelf-lat').value;
+  const lon = document.getElementById('edit-shelf-lon').value;
+  try {
+    await put('/bookshelves/' + id, {
+      name,
+      latitude: lat ? parseFloat(lat) : null,
+      longitude: lon ? parseFloat(lon) : null,
+    });
+    closeModal();
+    navigate('/bookshelves/' + id);
+  } catch(e) { toast(e.message); }
+}
+
+async function confirmDeleteShelf(id) {
+  openModal(`<div class="modal">
+    <h3>Delete Bookshelf?</h3>
+    <p style="color:var(--muted);margin-bottom:16px">This will permanently delete the bookshelf and all its scans and books.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="deleteShelf(${id})">Delete</button>
+    </div>
+  </div>`);
+}
+
+async function deleteShelf(id) {
+  try {
+    await del('/bookshelves/' + id);
+    closeModal();
+    navigate('/bookshelves');
+    toast('Bookshelf deleted');
+  } catch(e) { toast(e.message); }
+}
+
+// ── Scans List ────────────────────────────────────────────────────────────────
+route(/^\/scans$/, async () => {
+  render('<div class="page-header"><h2>Scans</h2><button class="btn btn-primary" onclick="showNewScanModal()">+ New Scan</button></div><div id="scans-list"><div class="empty"><div class="spinner"></div></div></div>');
+  loadScansList();
+});
+
+async function loadScansList() {
+  const el = document.getElementById('scans-list');
+  try {
+    const scans = await get('/scans');
+    if (!scans.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">📷</div><p>No scans yet.</p></div>';
+      return;
+    }
+    el.innerHTML = scans.map(s => scanCard(s)).join('');
+  } catch(e) { el.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+function scanCard(s) {
+  const imgUrl = `/uploads/${esc(s.image_filename)}`;
+  return `<div class="scan-card" id="scan-card-${s.id}">
+    <img class="scan-thumb" src="${imgUrl}" alt="scan" onclick="navigate('/scans/${s.id}')" onerror="this.style.background='var(--border)'">
+    <div class="scan-info">
+      <h4><a href="#/scans/${s.id}">Scan #${s.id}</a> ${statusBadge(s.status)}</h4>
+      <div class="meta">
+        ${s.bookshelf_name ? `📚 <a href="#/bookshelves/${s.bookshelf_id}">${esc(s.bookshelf_name)}</a> · ` : ''}
+        ${fmtDate(s.created_at)}
+        ${s.book_count > 0 ? ` · ${s.book_count} book${s.book_count !== 1 ? 's' : ''}` : ''}
+      </div>
+      <div class="actions">
+        <a href="#/scans/${s.id}" class="btn btn-secondary btn-sm">View</a>
+        <button class="btn btn-danger btn-sm" onclick="deleteScanWithPreview(${s.id})">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Scan Detail ───────────────────────────────────────────────────────────────
+const pollTimers = {};
+
+route(/^\/scans\/(\d+)$/, async (id) => {
+  Object.values(pollTimers).forEach(clearTimeout);
+  render('<div class="empty"><div class="spinner"></div></div>');
+  loadScanDetail(id);
+});
+
+async function loadScanDetail(id) {
+  try {
+    const scan = await get('/scans/' + id);
+    renderScanDetail(scan);
+    if (scan.status === 'pending' || scan.status === 'processing') {
+      pollTimers[id] = setTimeout(() => loadScanDetail(id), 2000);
+    }
+  } catch(e) { render(`<div class="empty">${esc(e.message)}</div>`); }
+}
+
+function renderScanDetail(scan) {
+  const imgUrl = `/uploads/${esc(scan.image_filename)}`;
+  const backLink = scan.bookshelf_id
+    ? `<a href="#/bookshelves/${scan.bookshelf_id}" style="color:var(--muted);text-decoration:none;font-size:.9rem">← Bookshelf</a>`
+    : `<a href="#/scans" style="color:var(--muted);text-decoration:none;font-size:.9rem">← Scans</a>`;
+
+  let booksHtml = '';
+  if (scan.status === 'completed' && scan.books) {
+    booksHtml = scan.books.length
+      ? `<div class="section-header"><h3>${scan.books.length} books found</h3><div class="divider"></div></div>
+         <div class="card">${scan.books.map(b => bookItemEditable(b)).join('')}</div>`
+      : '<div class="empty"><div class="icon">📖</div><p>No books detected in this scan.</p></div>';
+  } else if (scan.status === 'pending' || scan.status === 'processing') {
+    booksHtml = `<div class="empty"><div class="spinner"></div><p style="margin-top:12px">Processing scan...</p></div>`;
+  } else if (scan.status === 'failed') {
+    booksHtml = `<div class="empty"><div class="icon">⚠️</div><p>${esc(scan.error_message || 'Scan failed')}</p></div>`;
+  }
+
+  document.getElementById('app').innerHTML = `
+    <div class="page-header">
+      ${backLink}
+      <h2>Scan #${scan.id} ${statusBadge(scan.status)}</h2>
+      <button class="btn btn-danger btn-sm" onclick="deleteScanWithPreview(${scan.id})">Delete</button>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:0 0 auto;max-width:320px">
+        <a href="${imgUrl}" target="_blank">
+          <img class="scan-image-full" src="${imgUrl}" alt="scan image">
+        </a>
+        <div style="font-size:.82rem;color:var(--muted)">
+          <div>Created: ${fmtDate(scan.created_at)}</div>
+          ${scan.completed_at ? `<div>Completed: ${fmtDate(scan.completed_at)}</div>` : ''}
+          ${scan.bookshelf_id ? `<div>Shelf: <a href="#/bookshelves/${scan.bookshelf_id}">Bookshelf #${scan.bookshelf_id}</a></div>` : ''}
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px" id="scan-books">${booksHtml}</div>
+    </div>
+  `;
+}
+
+function bookItemEditable(book) {
+  return `<div class="book-item" id="book-row-${book.id}">
+    ${bookCover(book)}
+    <div class="book-info">
+      <div class="book-title" id="title-${book.id}">${esc(book.title || '(Unknown)')}</div>
+      <div class="book-author" id="author-${book.id}">${esc(book.author || '')}</div>
+      ${book.isbn ? `<div class="book-isbn">ISBN: ${esc(book.isbn)}</div>` : ''}
+      ${book.ocr_title && book.ocr_title !== book.title ? `<div class="book-isbn" style="color:#aaa">OCR: ${esc(book.ocr_title)}</div>` : ''}
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="editBook(${book.id}, '${esc(book.title || '')}', '${esc(book.author || '')}', '${esc(book.isbn || '')}', '${esc(book.cover_url || '')}')">Edit</button>
+  </div>`;
+}
+
+function editBook(id, title, author, isbn, coverUrl) {
+  openModal(`<div class="modal">
+    <h3>Edit Book</h3>
+    <div class="form-group"><label>Title</label><input id="edit-title" value="${esc(title)}" /></div>
+    <div class="form-group"><label>Author</label><input id="edit-author" value="${esc(author)}" /></div>
+    <div class="form-group"><label>ISBN</label><input id="edit-isbn" value="${esc(isbn)}" /></div>
+    <div class="form-group"><label>Cover URL</label><input id="edit-cover" value="${esc(coverUrl)}" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBook(${id})">Save</button>
+    </div>
+  </div>`);
+}
+
+async function saveBook(id) {
+  const body = {
+    title: document.getElementById('edit-title').value.trim() || null,
+    author: document.getElementById('edit-author').value.trim() || null,
+    isbn: document.getElementById('edit-isbn').value.trim() || null,
+    cover_url: document.getElementById('edit-cover').value.trim() || null,
+  };
+  try {
+    const updated = await patch('/books/' + id, body);
+    closeModal();
+    // Update the row in-place
+    const row = document.getElementById('book-row-' + id);
+    if (row) {
+      row.outerHTML = bookItemEditable(updated);
+    }
+    toast('Book updated');
+  } catch(e) { toast(e.message); }
+}
+
+// ── Delete Scan ───────────────────────────────────────────────────────────────
+async function deleteScanWithPreview(id) {
+  try {
+    const preview = await get('/scans/' + id + '/delete-preview');
+    openModal(`<div class="modal">
+      <h3>Delete Scan #${id}?</h3>
+      <p style="color:var(--muted);margin-bottom:12px">This will remove:</p>
+      <ul style="margin-left:16px;margin-bottom:16px;color:var(--text);font-size:.9rem">
+        <li>${preview.total_books} total book record${preview.total_books !== 1 ? 's' : ''}</li>
+        <li>${preview.unique_books} book${preview.unique_books !== 1 ? 's' : ''} unique to this scan (will be lost)</li>
+        <li>${preview.shared_books} book${preview.shared_books !== 1 ? 's' : ''} also in other scans (safe)</li>
+      </ul>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="doDeleteScan(${id})">Delete</button>
+      </div>
+    </div>`);
+  } catch(e) { toast(e.message); }
+}
+
+async function doDeleteScan(id) {
+  try {
+    await del('/scans/' + id);
+    closeModal();
+    toast('Scan deleted');
+    // Navigate back if we're on the scan page
+    if (window.location.hash === '#/scans/' + id) {
+      navigate('/scans');
+    } else {
+      // Reload current view
+      dispatch();
+    }
+  } catch(e) { toast(e.message); }
+}
+
+// ── New Scan Modal ────────────────────────────────────────────────────────────
+async function showNewScanModal(preselectedShelfId) {
+  let shelves = [];
+  try { shelves = await get('/bookshelves'); } catch {}
+
+  const shelfOptions = shelves.map(s =>
+    `<option value="${s.id}" ${s.id == preselectedShelfId ? 'selected' : ''}>${esc(s.name)}</option>`
+  ).join('');
+
+  openModal(`<div class="modal">
+    <h3>Upload New Scan</h3>
+    <div class="form-group">
+      <label>Bookshelf (optional)</label>
+      <select id="scan-shelf">
+        <option value="">— Auto-detect from GPS —</option>
+        ${shelfOptions}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Photo</label>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('scan-file').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="handleDrop(event)">
+        <div class="icon">📷</div>
+        <div>Click to choose photo or drag & drop</div>
+        <div class="hint">JPG, PNG, HEIC supported</div>
+        <input type="file" id="scan-file" accept="image/*" onchange="previewFile(this)">
+        <img id="upload-preview" class="upload-preview hidden" alt="preview">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitScan()">Upload & Process</button>
+    </div>
+  </div>`);
+}
+
+function previewFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const prev = document.getElementById('upload-preview');
+  prev.src = URL.createObjectURL(file);
+  prev.classList.remove('hidden');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const inp = document.getElementById('scan-file');
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    inp.files = dt.files;
+    previewFile(inp);
+  }
+}
+
+async function submitScan() {
+  const fileInput = document.getElementById('scan-file');
+  const shelfId = document.getElementById('scan-shelf').value;
+  if (!fileInput.files[0]) { toast('Please select a photo'); return; }
+
+  const fd = new FormData();
+  fd.append('image', fileInput.files[0]);
+  if (shelfId) fd.append('bookshelf_id', shelfId);
+
+  try {
+    const result = await post('/scans', fd);
+    closeModal();
+    toast(`Scan #${result.scan_id} queued!`);
+    navigate('/scans/' + result.scan_id);
+  } catch(e) { toast(e.message); }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+dispatch();
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from .database import init_db
 from .routers import books, bookshelves, scans
@@ -37,14 +38,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.include_router(books.router)
-app.include_router(bookshelves.router)
-app.include_router(scans.router)
+app.include_router(books.router, prefix="/api")
+app.include_router(bookshelves.router, prefix="/api")
+app.include_router(scans.router, prefix="/api")
 
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+from .config import UPLOADS_DIR
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+app.mount("/", StaticFiles(directory="server/static", html=True), name="static")
 
 
 def main():
