@@ -1,0 +1,3 @@
+weatheratballoons.shop {
+    reverse_proxy app:8000
+}
