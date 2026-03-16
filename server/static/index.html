@@ -552,6 +552,7 @@ function scanCard(s) {
         ${s.bookshelf_name ? `📚 <a href="#/bookshelves/${s.bookshelf_id}">${esc(s.bookshelf_name)}</a> · ` : ''}
         ${fmtDate(s.created_at)}
         ${s.book_count > 0 ? ` · ${s.book_count} book${s.book_count !== 1 ? 's' : ''}` : ''}
+        ${s.unknown_book_count > 0 ? ` · <span style="color:var(--muted)">${s.unknown_book_count} unidentified</span>` : ''}
       </div>
       <div class="actions">
         <a href="#/scans/${s.id}" class="btn btn-secondary btn-sm">View</a>
@@ -588,8 +589,11 @@ function renderScanDetail(scan) {
 
   let booksHtml = '';
   if (scan.status === 'completed' && scan.books) {
+    const unknownNote = scan.unknown_book_count
+      ? ` <span style="font-size:.8rem;color:var(--muted);font-weight:normal">(${scan.unknown_book_count} unidentified)</span>`
+      : '';
     booksHtml = scan.books.length
-      ? `<div class="section-header"><h3>${scan.books.length} books found</h3><div class="divider"></div></div>
+      ? `<div class="section-header"><h3>${scan.books.length} books found${unknownNote}</h3><div class="divider"></div></div>
          <div class="card">${scan.books.map(b => bookItemEditable(b)).join('')}</div>`
       : '<div class="empty"><div class="icon">📖</div><p>No books detected in this scan.</p></div>';
   } else if (scan.status === 'pending' || scan.status === 'processing') {

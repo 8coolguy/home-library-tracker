@@ -98,10 +98,16 @@ def lookup_book(title: str | None, author: str | None) -> dict | None:
     cover_url = _clean_thumbnail(raw_thumbnail) if raw_thumbnail else None
 
     isbn = None
+    isbn_10 = None
     for identifier in info.get("industryIdentifiers", []):
-        if identifier.get("type") == "ISBN_13":
+        id_type = identifier.get("type")
+        if id_type == "ISBN_13":
             isbn = identifier.get("identifier")
             break
+        if id_type == "ISBN_10":
+            isbn_10 = identifier.get("identifier")
+    if isbn is None:
+        isbn = isbn_10
 
     logger.info("Google Books: cover_url=%r isbn=%r", cover_url, isbn)
 

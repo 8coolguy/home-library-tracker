@@ -28,19 +28,27 @@ def _migrate_books_table() -> None:
     from sqlalchemy import text
     from sqlalchemy.exc import OperationalError
 
-    new_columns = [
+    books_columns = [
         "cover_url TEXT",
         "isbn TEXT",
         "ocr_title TEXT",
         "ocr_author TEXT",
     ]
+    scans_columns = [
+        "unknown_book_count INTEGER NOT NULL DEFAULT 0",
+    ]
     with engine.connect() as conn:
-        for col_def in new_columns:
+        for col_def in books_columns:
             try:
                 conn.execute(text(f"ALTER TABLE books ADD COLUMN {col_def}"))
                 conn.commit()
             except OperationalError:
-                # Column already exists — safe to ignore
+                pass
+        for col_def in scans_columns:
+            try:
+                conn.execute(text(f"ALTER TABLE scans ADD COLUMN {col_def}"))
+                conn.commit()
+            except OperationalError:
                 pass
 
 

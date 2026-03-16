@@ -37,6 +37,7 @@ class Scan(Base):
     longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     status: Mapped[str] = mapped_column(String, default="pending")
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    unknown_book_count: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 

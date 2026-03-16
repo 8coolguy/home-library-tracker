@@ -102,6 +102,7 @@ class ScanOut(BaseModel):
     bookshelf_id: Optional[int]
     status: str
     error_message: Optional[str]
+    unknown_book_count: int = 0
     created_at: datetime
     completed_at: Optional[datetime]
     image_filename: Optional[str] = None
@@ -120,6 +121,7 @@ class ScanListItem(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime]
     book_count: int
+    unknown_book_count: int = 0
 
 
 class ScanDeletePreview(BaseModel):

@@ -100,6 +100,7 @@ def list_scans(bookshelf_id: Optional[int] = None, db: Session = Depends(get_db)
                 created_at=scan.created_at,
                 completed_at=scan.completed_at,
                 book_count=len(scan.books),
+                unknown_book_count=scan.unknown_book_count,
             )
         )
     return result
@@ -183,6 +184,7 @@ def get_scan(scan_id: int, db: Session = Depends(get_db)):
         bookshelf_id=scan.bookshelf_id,
         status=scan.status,
         error_message=scan.error_message,
+        unknown_book_count=scan.unknown_book_count,
         created_at=scan.created_at,
         completed_at=scan.completed_at,
         image_filename=scan.image_filename,

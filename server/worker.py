@@ -37,9 +37,20 @@ def _process_scan(scan_id: int) -> None:
 
         results = scan_books(image_path, min_confidence=OCR_MIN_CONFIDENCE)
 
+        unknown_count = 0
         for entry in results:
             ocr_title = entry.get("title")
             ocr_author = entry.get("author")
+
+            if not ocr_title and not ocr_author:
+                logger.debug("Skipping null book entry (no title or author)")
+                unknown_count += 1
+                continue
+
+            if ocr_title and ocr_title.strip().upper() == "X":
+                logger.debug("Skipping unidentified book (title is 'X')")
+                unknown_count += 1
+                continue
 
             enriched = lookup_book(ocr_title, ocr_author)
 
@@ -54,10 +65,6 @@ def _process_scan(scan_id: int) -> None:
                 cover_url = None
                 isbn = None
 
-            if not title and not author:
-                logger.debug("Skipping null book entry (no title or author)")
-                continue
-
             db.add(Book(
                 scan_id=scan.id,
                 title=title,
@@ -70,8 +77,9 @@ def _process_scan(scan_id: int) -> None:
 
         scan.status = "completed"
         scan.completed_at = datetime.utcnow()
+        scan.unknown_book_count = unknown_count
         db.commit()
-        logger.info("Scan %d completed: %d books found", scan_id, len(results))
+        logger.info("Scan %d completed: %d books found, %d unknown", scan_id, len(results) - unknown_count, unknown_count)
 
     except Exception:
         logger.exception("Scan %d failed", scan_id)
